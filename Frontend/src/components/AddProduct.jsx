@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 
-const API_URL = "http://localhost:5000/api/products";
+const API_URL = `${import.meta.env.VITE_API_URL}/api/products`;
 
 function AddProduct({ onProductAdded, onCancel }) {
   const [formData, setFormData] = useState({

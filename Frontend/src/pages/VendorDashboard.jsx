@@ -6,7 +6,7 @@ import AddProduct from "../components/AddProduct"
 import StoreProfile from "../components/StoreProfile";
 import EditProduct from "../components/EditProduct";
 
-const API_URL = "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL;
 
 function VendorDashboard() {
   const [products, setProducts] = useState([]);

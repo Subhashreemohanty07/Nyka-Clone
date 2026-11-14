@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 function ResetPassword() {
   const [searchParams] = useSearchParams();
 
@@ -32,7 +34,7 @@ function ResetPassword() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/reset-password",
+          `${API_URL}/api/auth/reset-password`,
         {
           method: "POST",
           headers: {

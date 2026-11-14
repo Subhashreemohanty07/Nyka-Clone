@@ -7,7 +7,7 @@ import Footer from "../components/Footer";
 import AddressManager from "../components/AddressManger";
 
 const API_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000";
+  import.meta.env.VITE_API_URL ;
 
 function Checkout() {
   const navigate = useNavigate();

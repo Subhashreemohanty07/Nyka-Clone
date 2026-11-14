@@ -8,7 +8,7 @@ import EditProduct from "../components/EditProduct";
 import AdminCustomerActivity from "../components/AdminCustomerActivity";
 import ProfileDetails from "../components/ProfileDetails";
 
-const API_URL = "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL;
 
 function AdminDashboard() {
   const [users, setUsers] = useState([]);
