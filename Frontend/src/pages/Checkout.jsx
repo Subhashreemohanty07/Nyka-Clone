@@ -26,6 +26,9 @@ function Checkout() {
   // PAYMENT
   const [paymentMethod, setPaymentMethod] = useState("COD");
 
+  // PLACE ORDER LOADING
+  const [placingOrder, setPlacingOrder] = useState(false);
+
   // FETCH CART
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -146,28 +149,81 @@ function Checkout() {
   );
 
   // ORDER API WILL BE CONNECTED LATER
-  function handlePlaceOrder() {
+  
+  async function handlePlaceOrder() {
+    if (placingOrder) return;
+
     setAddressError("");
 
+    // Check delivery address
     if (!selectedAddress) {
-      setAddressError(
-        "Please select a delivery address."
-      );
+      setAddressError("Please select a delivery address.");
       return;
     }
 
+    // Check payment method
     if (paymentMethod !== "COD") {
-      setAddressError(
-        "Please select a valid payment method."
-      );
+      setAddressError("Please select a valid payment method.");
       return;
     }
 
-    alert(
-      "Delivery address selected successfully. " +
-      "We will connect the Order API next."
+    // Demo payment confirmation
+    const confirmed = window.confirm(
+      "Please complete your payment to place the order.\n\n" +
+      "Click OK to simulate a successful payment.\n" +
+      "Click Cancel to return to checkout.\n\n" +
+      "This is a demo. No actual payment will be collected."
     );
+
+    // If customer clicks Cancel, do nothing
+    if (!confirmed) return;
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/signin", {
+        state: { from: "/checkout" },
+      });
+      return;
+    }
+
+    try {
+      setPlacingOrder(true);
+
+      // Call backend Order API
+      const response = await fetch(`${API_URL}/api/orders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          addressId: selectedAddress._id,
+          paymentMethod: "COD",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Unable to place order.");
+      }
+
+      // Navigate to Order Success page
+      navigate("/order-success", {
+        replace: true,
+        state: { order: data.order },
+      });
+
+    } catch (error) {
+      setAddressError(
+        error.message || "Unable to place order. Please try again."
+      );
+    } finally {
+      setPlacingOrder(false);
+    }
   }
+
 
   return (
     <div className="bg-light min-vh-100">
@@ -438,6 +494,7 @@ function Checkout() {
                 )}
 
                 {/* PLACE ORDER */}
+                
                 <button
                   type="button"
                   className="btn w-100 py-3 fw-semibold text-white"
@@ -446,14 +503,25 @@ function Checkout() {
                   }}
                   onClick={handlePlaceOrder}
                   disabled={
+                    placingOrder ||
                     cartItems.length === 0 ||
                     !addressReady ||
                     !selectedAddress
                   }
                 >
-                  <i className="bi bi-bag-check me-2"></i>
-                  PLACE ORDER
+                  {placingOrder ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2"></span>
+                      PLACING ORDER...
+                    </>
+                  ) : (
+                    <>
+                      <i className="bi bi-bag-check me-2"></i>
+                      PLACE ORDER
+                    </>
+                  )}
                 </button>
+
 
                 {!addressReady && (
                   <p className="small text-secondary text-center mt-2">

@@ -15,6 +15,7 @@ import Checkout from "./pages/Checkout";
 import CustomerWishlist from "./pages/CustomerWishlist";
 import AcceptAdminInvite from "./pages/AcceptAdminInvite";
 import ProtectedRoute from "./pages/ProtectedRoute";
+import OrderSuccess from "./pages/OrderSuccess";
 
 
 function RoleBasedHome() {
@@ -54,6 +55,7 @@ function App() {
         <Route path="/wishlist" element={<CustomerWishlist />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />}/>
+        <Route path="/order-success" element={<OrderSuccess />} />
         <Route path="/admin-dashboard" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>}/>
         <Route path="/vendor-dashboard" element={<ProtectedRoute allowedRoles={["vendor"]}><VendorDashboard/></ProtectedRoute>}/>
         <Route path="/profile" element={<Profile />} />
