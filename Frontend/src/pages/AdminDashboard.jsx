@@ -110,8 +110,24 @@ function AdminDashboard() {
   }, []);
 
   // CHANGE SIDEBAR MENU
+  const [menuHistory, setMenuHistory] = useState([]);
+
   const handleMenuChange = (menu) => {
-    setActiveMenu(menu);
+    if (menu !== activeMenu) {
+      setMenuHistory((previous) => [...previous, activeMenu]);
+      setActiveMenu(menu);
+    }
+    setMobileMenuOpen(false);
+  };
+
+  const handleBack = () => {
+    if (menuHistory.length > 0) {
+      const previousMenu = menuHistory[menuHistory.length - 1];
+      setMenuHistory((previous) => previous.slice(0, -1));
+      setActiveMenu(previousMenu);
+    } else {
+      setActiveMenu("Dashboard");
+    }
     setMobileMenuOpen(false);
   };
 
@@ -442,6 +458,16 @@ const menuItems = [
         >
           {/* ADMIN HEADER */}
           <header className="bg-white border-bottom px-3 px-md-4 py-3">
+            {activeMenu !== "Dashboard" && (
+              <button
+                type="button"
+                className="btn btn-link text-dark text-decoration-none text-start px-3 pt-3"
+                onClick={handleBack}
+              >
+                <i className="bi bi-arrow-left me-2"></i>
+                Back
+              </button>
+            )}
             <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3">
               <div>
                 <h4 className="fw-bold mb-1 fs-5">
