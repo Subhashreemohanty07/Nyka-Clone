@@ -1,6 +1,7 @@
 
 import express from "express";
 import mongoose from "mongoose";
+import PDFDocument from "pdfkit";
 
 import Order from "../models/Order.js";
 import Cart from "../models/Cart.js";
@@ -311,5 +312,183 @@ router.get(
     }
   }
 );
+
+ // GET /api/orders/:orderId/receipt
+ // DOWNLOAD RECEIPT FOR CUSTOMER'S OWN ORDER
+
+router.get(
+  "/:orderId/receipt",
+  allowRoles("customer"),
+  async (req, res) => {
+    try {
+      const { orderId } = req.params;
+
+      // Validate order ID
+      if (!mongoose.isValidObjectId(orderId)) {
+        return res.status(400).json({
+          message: "Invalid order ID.",
+        });
+      }
+
+      // Find only this customer's order
+      const order = await Order.findOne({
+        _id: orderId,
+        user: req.user.userId,
+      }).lean();
+
+      if (!order) {
+        return res.status(404).json({
+          message: "Order not found.",
+        });
+      }
+
+      // Create PDF
+      const doc = new PDFDocument({
+        size: "A4",
+        margin: 50,
+      });
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="Nykaa-Receipt-${order._id}.pdf"`
+      );
+
+      doc.pipe(res);
+
+      // RECEIPT HEADER
+      doc
+        .fontSize(24)
+        .fillColor("#fc2779")
+        .text("NYKAA CLONE", { align: "center" });
+
+      doc
+        .fontSize(15)
+        .fillColor("#333333")
+        .text("ORDER RECEIPT", { align: "center" });
+
+      doc.moveDown(2);
+
+      // ORDER INFORMATION
+      doc.fontSize(11).fillColor("#000000");
+
+      doc.text(`Order ID: ${order._id}`);
+      doc.text(
+        `Order Date: ${new Date(order.createdAt).toLocaleString("en-IN")}`
+      );
+      doc.text(`Order Status: ${order.orderStatus}`);
+      doc.text(`Payment Method: ${order.paymentMethod}`);
+      doc.text(`Payment Status: ${order.paymentStatus}`);
+
+      doc.moveDown(1.5);
+
+      // DELIVERY ADDRESS
+      const address = order.deliveryAddress || {};
+
+      doc.fontSize(14).text("Delivery Address");
+      doc.moveDown(0.5);
+      doc.fontSize(11);
+
+      doc.text(`Name: ${address.fullName || ""}`);
+      doc.text(`Phone: ${address.phone || ""}`);
+
+      doc.text(
+        [
+          address.house,
+          address.area,
+          address.city,
+          address.state,
+        ]
+          .filter(Boolean)
+          .join(", ")
+      );
+
+      doc.text(`Pincode: ${address.pincode || ""}`);
+
+      doc.moveDown(1.5);
+
+      // ORDERED PRODUCTS
+      doc.fontSize(14).text("Ordered Products");
+      doc.moveDown();
+
+      for (const item of order.items) {
+        const price = Number(item.price || 0);
+        const quantity = Number(item.quantity || 0);
+
+        doc.fontSize(11).fillColor("#000000");
+
+        doc.text(`Product: ${item.productName || "Product"}`);
+        doc.text(`Brand: ${item.brand || "N/A"}`);
+        doc.text(`Quantity: ${quantity}`);
+        doc.text(`Unit Price: Rs. ${price.toFixed(2)}`);
+        doc.text(
+          `Item Total: Rs. ${(price * quantity).toFixed(2)}`
+        );
+
+        if (item.size) {
+          doc.text(`Size: ${item.size}`);
+        }
+
+        if (item.color) {
+          doc.text(`Colour: ${item.color}`);
+        }
+
+        doc.moveDown();
+      }
+
+      // PAYMENT SUMMARY
+      doc.moveDown();
+      doc.fontSize(14).text("Payment Summary");
+      doc.moveDown(0.5);
+
+      doc.fontSize(11);
+      doc.text(
+        `Subtotal: Rs. ${Number(order.subtotal || 0).toFixed(2)}`
+      );
+      doc.text(
+        `Delivery Charge: Rs. ${Number(order.deliveryCharge || 0).toFixed(2)}`
+      );
+
+      doc.moveDown(0.5);
+
+      doc
+        .fontSize(15)
+        .fillColor("#fc2779")
+        .text(
+          `Total Amount: Rs. ${Number(order.totalAmount || 0).toFixed(2)}`
+        );
+
+      doc.moveDown(2);
+
+      doc
+        .fontSize(9)
+        .fillColor("#777777")
+        .text(
+          "Thank you for shopping with Nykaa Clone!",
+          { align: "center" }
+        );
+
+      doc.text(
+        "This is an order receipt, not proof of payment.",
+        { align: "center" }
+      );
+
+      // Finish PDF
+      doc.end();
+
+    } catch (error) {
+      console.error("Receipt generation error:", error);
+
+      if (!res.headersSent) {
+        return res.status(500).json({
+          message: "Unable to generate receipt.",
+        });
+      }
+
+      res.destroy(error);
+    }
+  }
+);
+
 
 export default router;

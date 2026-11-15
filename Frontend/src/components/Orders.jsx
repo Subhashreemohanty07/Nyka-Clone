@@ -1,6 +1,8 @@
 
 import { useState } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 function Orders({
   isAdmin = false,
   customers = [],
@@ -8,6 +10,10 @@ function Orders({
 }) {
   const [search, setSearch] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState("");
+
+  // PDF DOWNLOAD STATES
+  const [downloadingOrderId, setDownloadingOrderId] = useState(null);
+  const [downloadError, setDownloadError] = useState("");
 
   const filteredCustomers = customers.filter((customer) =>
     `${customer.name || ""} ${customer.email || ""}`
@@ -29,6 +35,65 @@ function Orders({
         return customerId === selectedCustomer;
       })
     : orders;
+
+  // DOWNLOAD PDF RECEIPT
+  async function handleDownloadReceipt(orderId) {
+    if (downloadingOrderId) return;
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setDownloadError("Please sign in to download your receipt.");
+      return;
+    }
+
+    try {
+      setDownloadingOrderId(orderId);
+      setDownloadError("");
+
+      const response = await fetch(
+        `${API_URL}/api/orders/${orderId}/receipt`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+
+        throw new Error(
+          data.message || "Unable to download receipt."
+        );
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Nykaa-Receipt-${orderId}.pdf`;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 1000);
+
+    } catch (error) {
+      console.error("Receipt download error:", error);
+
+      setDownloadError(
+        error.message || "Unable to download receipt."
+      );
+    } finally {
+      setDownloadingOrderId(null);
+    }
+  }
 
   return (
     <div className="card border-0 shadow-sm rounded-4">
@@ -103,6 +168,13 @@ function Orders({
           </div>
         )}
 
+        {/* PDF DOWNLOAD ERROR */}
+        {downloadError && (
+          <div className="alert alert-danger" role="alert">
+            {downloadError}
+          </div>
+        )}
+
         {/* ORDER CONTENT */}
         {isAdmin && !selectedCustomer ? (
           <div className="text-center border rounded-3 py-5 px-3">
@@ -126,8 +198,8 @@ function Orders({
 
             <p className="text-secondary small mb-0">
               {isAdmin
-                ? "Order information will appear here after the Orders API is connected."
-                : "Your orders will appear here once the Orders feature is implemented."}
+                ? "No purchase orders found for this customer."
+                : "You haven't placed any orders yet."}
             </p>
           </div>
         ) : (
@@ -143,7 +215,7 @@ function Orders({
                   </h6>
 
                   <span className="badge bg-light text-dark border">
-                    {order.status || "Pending"}
+                    {order.orderStatus || order.status || "Pending"}
                   </span>
                 </div>
 
@@ -163,15 +235,50 @@ function Orders({
                     ).toLocaleString("en-IN")}
                   </span>
 
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-outline-secondary"
-                    disabled
-                    title="Order details will be available later"
-                  >
-                    View Details
-                  </button>
+                  <div className="d-flex flex-wrap gap-2">
+                    {/* EXISTING VIEW DETAILS BUTTON */}
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-secondary"
+                      disabled
+                      title="Order details will be available later"
+                    >
+                      View Details
+                    </button>
+
+                    {/* CUSTOMER PDF DOWNLOAD BUTTON */}
+                    {!isAdmin && (
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-success"
+                        onClick={() =>
+                          handleDownloadReceipt(order._id)
+                        }
+                        disabled={downloadingOrderId !== null}
+                      >
+                        {downloadingOrderId === order._id ? (
+                          <>
+                            <span className="spinner-border spinner-border-sm me-2"></span>
+                            Downloading...
+                          </>
+                        ) : (
+                          <>
+                            <i className="bi bi-file-earmark-pdf me-2"></i>
+                            Download PDF
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </div>
+
+                {!isAdmin && (
+                  <p className="small text-secondary mt-2 mb-0">
+                    Payment: {order.paymentMethod || "N/A"}
+                    {" | "}
+                    {order.paymentStatus || "Pending"}
+                  </p>
+                )}
               </div>
             ))}
           </div>
