@@ -16,11 +16,34 @@ import CustomerWishlist from "./pages/CustomerWishlist";
 import AcceptAdminInvite from "./pages/AcceptAdminInvite";
 import ProtectedRoute from "./pages/ProtectedRoute";
 
+
+function RoleBasedHome() {
+  const token = localStorage.getItem("token");
+
+  let user = null;
+
+  try {
+    user = JSON.parse(localStorage.getItem("user") || "null");
+  } catch {
+    user = null;
+  }
+
+  if (token && user?.role === "admin") {
+    return <Navigate to="/admin-dashboard" replace />;
+  }
+
+  if (token && user?.role === "vendor") {
+    return <Navigate to="/vendor-dashboard" replace />;
+  }
+
+  return <Home />;
+}
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<RoleBasedHome />} />
         <Route path="/signin" element={<Signin />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/verify-email" element={<VerifyEmail />} />

@@ -617,7 +617,7 @@ function ProductListing() {
 
         {/* HEADING */}
         <div className="mb-4">
-          <h2 className="fw-bold">Discover Your Style</h2>
+          <h2 className="fw-bold" style={{ color: "#f3338f" }}>Discover Your Style</h2>
           <p className="text-secondary mb-0">
             Explore the latest fashion collections for men and women.
           </p>

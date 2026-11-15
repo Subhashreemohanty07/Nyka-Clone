@@ -38,7 +38,7 @@ function Home() {
           className="home-section container-fluid text-center"
           id="categories"
         >
-          <h2>Explore Your Style</h2>
+          <h2 style={{ color: "#f3338f" }}>Explore Your Style</h2>
           <p>Discover fashion for every occasion</p>
 
           <div className="category-cards row g-4 justify-content-center">

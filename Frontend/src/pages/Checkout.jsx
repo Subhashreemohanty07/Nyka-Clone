@@ -206,7 +206,7 @@ function Checkout() {
 
         {/* PAGE HEADING */}
         <div className="mb-4">
-          <h2 className="fw-bold">
+          <h2 className="fw-bold" style={{ color: "#f3338f" }}>
             Checkout
           </h2>
 

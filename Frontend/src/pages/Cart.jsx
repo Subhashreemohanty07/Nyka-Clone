@@ -210,7 +210,7 @@ function Cart() {
 
         {/* HEADING */}
         <div className="mb-4">
-          <h2 className="fw-bold">My Shopping Bag</h2>
+          <h2 className="fw-bold" style={{ color: "#f3338f" }}>My Shopping Bag</h2>
           <p className="text-secondary">
             {totalItems} {totalItems === 1 ? "item" : "items"} in your bag
           </p>
