@@ -458,23 +458,29 @@ const menuItems = [
         >
           {/* ADMIN HEADER */}
           <header className="bg-white border-bottom px-3 px-md-4 py-3">
-            {activeMenu !== "Dashboard" && (
-              <button
-                type="button"
-                className="btn btn-link text-dark text-decoration-none text-start px-3 pt-3"
-                onClick={handleBack}
-              >
-                <i className="bi bi-arrow-left me-2"></i>
-                Back
-              </button>
-            )}
             <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3">
               <div>
-                <h4 className="fw-bold mb-1 fs-5">
-                  {activeMenu === "Dashboard"
-                    ? "Admin Dashboard"
-                    : activeMenu}
-                </h4>
+                
+                <div className="d-flex align-items-center gap-2 mb-1">
+                  {activeMenu !== "Dashboard" && (
+                    <button
+                      type="button"
+                      className="btn btn-link text-dark p-0 border-0"
+                      onClick={handleBack}
+                      aria-label="Go back"
+                      title="Go back"
+                    >
+                      <i className="bi bi-arrow-left fs-5"></i>
+                    </button>
+                  )}
+
+                  <h4 className="fw-bold mb-0 fs-5">
+                    {activeMenu === "Dashboard"
+                      ? "Admin Dashboard"
+                      : activeMenu}
+                  </h4>
+                </div>
+
 
                 <p className="text-secondary small mb-0">
                   {activeMenu === "Profile"
