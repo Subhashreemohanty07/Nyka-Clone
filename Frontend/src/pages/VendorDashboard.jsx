@@ -22,6 +22,32 @@ function VendorDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeMenu, setActiveMenu] = useState("Dashboard");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+
+const [menuHistory, setMenuHistory] = useState([]);
+
+
+const handleMenuChange = (menu) => {
+  if (menu !== activeMenu) {
+    setMenuHistory((previous) => [...previous, activeMenu]);
+    setActiveMenu(menu);
+  }
+
+  setMobileMenuOpen(false);
+};
+
+
+const handleBack = () => {
+  if (menuHistory.length > 0) {
+    const previousMenu = menuHistory[menuHistory.length - 1];
+    setMenuHistory((previous) => previous.slice(0, -1));
+    setActiveMenu(previousMenu);
+  } else {
+    setActiveMenu("Dashboard");
+  }
+};
+
 
   // Edit product states
  const [editingProduct, setEditingProduct] = useState(null);
@@ -220,15 +246,87 @@ function VendorDashboard() {
     },
   ];
 
+  
   return (
-    <div
-      className="container-fluid min-vh-100"
-      style={{ backgroundColor: "#faf9fb" }}
-    >
-      <div className="row min-vh-100">
+  <div
+    className="d-flex flex-column min-vh-100"
+    style={{ backgroundColor: "#faf9fb" }}
+  >
+    {/* MOBILE NAVBAR */}
+    <div className="d-md-none bg-white border-bottom w-100">
+      <div className="d-flex align-items-center justify-content-between px-3 py-3">
+        <div className="d-flex align-items-center gap-2">
+          <i
+            className="bi bi-bag-heart-fill fs-4"
+            style={{ color: "#fc2779" }}
+          ></i>
+          <span className="fw-bold fs-5">
+            Nykaa Store
+          </span>
+        </div>
+
+        <button
+          type="button"
+          className="btn btn-light border"
+          onClick={() => setMobileMenuOpen((previous) => !previous)}
+          aria-label="Toggle navigation"
+          aria-expanded={mobileMenuOpen}
+          aria-controls="vendor-mobile-menu"
+        >
+          <i
+            className={`bi ${
+              mobileMenuOpen ? "bi-x-lg" : "bi-list"
+            } fs-5`}
+          ></i>
+        </button>
+      </div>
+
+      {mobileMenuOpen && (
+        <nav id="vendor-mobile-menu" className="border-top p-3">
+          <div className="d-flex flex-column gap-1">
+            {menuItems.map((item) => (
+              <button
+                key={item.name}
+                type="button"
+                onClick={() => handleMenuChange(item.name)}
+                className="btn text-start d-flex align-items-center gap-3 w-100"
+                style={{
+                  backgroundColor:
+                    activeMenu === item.name ? "#fff0f5" : "transparent",
+                  color:
+                    activeMenu === item.name ? "#fc2779" : "#555",
+                  fontWeight:
+                    activeMenu === item.name ? "600" : "400",
+                  border: "none",
+                  padding: "12px",
+                  borderRadius: "8px",
+                }}
+              >
+                <i className={`bi ${item.icon}`}></i>
+                {item.name}
+              </button>
+            ))}
+
+            <hr className="my-2" />
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="btn text-start text-danger d-flex align-items-center gap-3"
+            >
+              <i className="bi bi-box-arrow-right"></i>
+              Logout
+            </button>
+          </div>
+        </nav>
+      )}
+    </div>
+
+    <div className="row flex-grow-1 g-0">
+
 
         {/* SIDEBAR */}
-        <aside className="col-12 col-md-3 col-lg-2 bg-white border-end p-3 d-flex flex-column">
+        <aside className="d-none d-md-flex col-md-3 col-lg-2 bg-white border-end p-3 flex-column">
           <h3
             className="fw-bold text-center mb-4"
             style={{ color: "#fc2779" }}
@@ -245,7 +343,7 @@ function VendorDashboard() {
               <button
                 key={item.name}
                 type="button"
-                onClick={() => setActiveMenu(item.name)}
+                onClick={() => handleMenuChange(item.name)}
                 className="btn text-start border-0 rounded-3"
                 style={{
                   backgroundColor:
@@ -284,15 +382,30 @@ function VendorDashboard() {
 
           {/* TOP HEADER */}
           <div className="d-flex justify-content-between align-items-center bg-white rounded-3 border p-3 mb-4">
-            <div>
-              <h5 className="fw-bold mb-1">
+          <div>
+            <div className="d-flex align-items-center gap-2 mb-1">
+              {activeMenu !== "Dashboard" && (
+                <button
+                  type="button"
+                  className="btn btn-link text-dark p-0 border-0"
+                  onClick={handleBack}
+                  aria-label="Go back"
+                  title="Go back"
+                >
+                  <i className="bi bi-arrow-left fs-5"></i>
+                </button>
+              )}
+
+              <h5 className="fw-bold mb-0">
                 {activeMenu}
               </h5>
-
-              <small className="text-secondary">
-                Vendor Panel
-              </small>
             </div>
+
+            <small className="text-secondary">
+              Vendor Panel
+            </small>
+          </div>
+
 
             {/* USER GREETING */}
             <div className="d-flex align-items-center gap-2">
@@ -385,7 +498,7 @@ function VendorDashboard() {
                     type="button"
                     className="btn text-white me-2 mb-2"
                     style={{ backgroundColor: "#fc2779" }}
-                    onClick={() => setActiveMenu("Add Product")}
+                    onClick={() => handleMenuChange("Add Product")}
                     >
                     <i className="bi bi-plus-circle me-2"></i>
                     Add New Product
@@ -395,7 +508,7 @@ function VendorDashboard() {
                     type="button"
                     className="btn text-white me-2 mb-2"
                     style={{ backgroundColor: "#fc2779" }}
-                    onClick={() => setActiveMenu("My Products")}
+                    onClick={() => handleMenuChange("My Products")}
                   >
                     <i className="bi bi-bag-fill me-2"></i>
                     View My Products
@@ -423,7 +536,7 @@ function VendorDashboard() {
                     <button
                       type="button"
                       className="btn btn-sm btn-outline-secondary"
-                      onClick={() => setActiveMenu("My Products")}
+                      onClick={() => handleMenuChange("My Products")}
                     >
                       View All
                     </button>
@@ -487,7 +600,7 @@ function VendorDashboard() {
             <AddProduct
                  onProductAdded={() => {
                  fetchMyProducts();
-                 setActiveMenu("My Products");
+                  handleMenuChange("My Products");
                 }}
                 />
             )}
